@@ -22,6 +22,6 @@ ${DIR_OBJ}/%.o: %.c
 .PHONY: clean
  
 clean:
-	rm -rf $(DIR_LIB)/*.so $(DIR_OBJ)/*.old
+	rm -rf $(DIR_LIB)/*.so $(DIR_OBJ)/*.o
 
 

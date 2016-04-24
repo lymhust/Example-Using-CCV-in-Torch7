@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 
 
 
-int detect_face(THFloatTensor* facearray, const char* imname)
+int detect_face_fromfile(THFloatTensor* facearray, const char* imname)
 {
         ccv_dense_matrix_t* image = 0;
         ccv_read(imname, &image, CCV_IO_RGB_COLOR | CCV_IO_ANY_FILE);
@@ -47,4 +47,37 @@ int detect_face(THFloatTensor* facearray, const char* imname)
         ccv_matrix_free(image);
 	return facenum;
 }
+
+
+int detect_face_fromtensor(THFloatTensor* facearray, THFloatTensor* img)
+{
+	float *imdata = THFloatTensor_data(img);
+        ccv_dense_matrix_t image;
+	image = ccv_dense_matrix(240, 320, CCV_32F | 1, imdata, 0);
+        ccv_scd_classifier_cascade_t* cascade = ccv_scd_classifier_cascade_read("./face.sqlite3");
+        ccv_array_t* faces = ccv_scd_detect_objects(&image, &cascade, 1, ccv_scd_default_params);
+        int i;
+	int facenum = faces->rnum;
+	float* vals = THFloatTensor_data(facearray);
+        for (i = 0; i < faces->rnum; i++)
+        {
+                ccv_comp_t* face = (ccv_comp_t*)ccv_array_get(faces, i);
+		int idx = i * 4;
+		vals[idx] = face->rect.x;
+		vals[idx+1] = face->rect.y;
+		vals[idx+2] = face->rect.width;
+		vals[idx+3] = face->rect.height;
+                printf("%d %d %d %d\n", face->rect.x, face->rect.y, face->rect.width, face->rect.height);
+        }
+        ccv_array_free(faces);
+        ccv_scd_classifier_cascade_free(cascade);
+        //ccv_matrix_free(&image);
+	return facenum;
+}
+
+
+
+
+
+
 
